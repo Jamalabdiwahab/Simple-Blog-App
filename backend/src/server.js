@@ -4,7 +4,8 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import { ConnectToDB } from "./config/db.js";
-import authRoutes from "./routes/user.route.js"
+import authRoutes from "./routes/user.route.js";
+import blogRoutes from "./routes/blog.route.js"
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use(cookieParser())
 
 app.use("/api/auth", authRoutes);
+app.use("/api/blogs", blogRoutes)
 
 app.use("/health",(_,res)=>{
     res.json({message:"server is healthy..."})

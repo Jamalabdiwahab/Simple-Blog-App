@@ -1,12 +1,17 @@
 import Blog from "../models/blog.model.js";
+import ImageKit from "imagekit";
 
-
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+});
 
 export async function getAllBlogs(req,res) {
 
     try {
         const loggedInUser = req.user.id;
-        const blogs = await Blog.find({_id:loggedInUser}).sort({createdAt: -1 });
+        const blogs = await Blog.find({user:loggedInUser}).sort({createdAt: -1 });
 
         res.status(200).json(blogs);
     } catch (error) {
@@ -19,7 +24,7 @@ export async function getBlogById(req,res) {
 
     try {
         const { id } = req.params;
-        const blog = await Blog.find(id);
+        const blog = await Blog.findById(id);
 
         if(!blog){
             return res.status(404).json({message:"This blog not found."})
@@ -34,7 +39,8 @@ export async function getBlogById(req,res) {
 
 export async function addBlog(req,res) {
 
-    let { title, content, image} = req.body;
+    let { title, content, image, video} = req.body;
+    const loggedInUser = req.user.id;
 
     if(!title || !content){
         return res.status(400).json({message:"please fill all the fields"})
@@ -42,7 +48,7 @@ export async function addBlog(req,res) {
 
     try {
 
-        const blog = await Blog.create({title,content,image});
+        const blog = await Blog.create({title,content,image,video,user:loggedInUser});
 
         res.status(201).json({
             message:'Todo added successfully!',
@@ -55,18 +61,18 @@ export async function addBlog(req,res) {
 }
 export async function updateBlog(req,res) {
     const { id } = req.params;
-    const { title, content, image} = req.body;
+    const { title, content, image, video} = req.body;
 
     try {
 
-        const updatedBlog = await Todos.findByIdAndUpdate(id,{title,content,image},{new:true});
+        const updatedBlog = await Blog.findByIdAndUpdate(id,{title,content,image,video},{new:true});
         
-        if(!updateBlog){
+        if(!updatedBlog){
             return res.status(404).json({message:"This blog not found."})
         }
         res.status(200).json({
             message:'Blog updated successfully!',
-            updateBlog
+            updatedBlog
         });
     } catch (error) {
         console.error("error updating blog: ",error);
@@ -90,5 +96,30 @@ export async function deleteBlog(req,res) {
     } catch (error) {
         console.error("error deleting blog: ",error);
         res.status(500).json({message:"internal server error"})
+    }
+}
+
+export async function uploadBlogMedia(req, res) {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No file provided." });
+        }
+
+        const isVideo = req.file.mimetype.startsWith("video/");
+
+        const uploadRes = await imagekit.upload({
+            file: req.file.buffer,
+            fileName: `blog_${Date.now()}`,
+            folder: isVideo ? "/blog-videos" : "/blog-images",
+            useUniqueFileName: true,
+        });
+
+        res.status(200).json({
+            url: uploadRes.url,
+            fileId: uploadRes.fileId,
+        });
+    } catch (error) {
+        console.error("error uploading blog media: ", error);
+        res.status(500).json({ message: "internal server error" });
     }
 }
