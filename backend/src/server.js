@@ -9,9 +9,14 @@ import blogRoutes from "./routes/blog.route.js"
 
 const app = express();
 const port = process.env.PORT || 5000;
+const FRONTEND_URL=process.env.FRONTEND_URL;
 
 app.use(express.json());
 app.use(cookieParser())
+app.use(cors({
+    origin:FRONTEND_URL,
+    credentials:true
+}));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes)

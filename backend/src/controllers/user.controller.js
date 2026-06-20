@@ -2,6 +2,7 @@ import { accessToken, refreshToken } from "../lib/token.js";
 import User from "../models/users.model.js";
 import jwt from "jsonwebtoken";
 import ImageKit from "imagekit";
+import bcrypt from "bcryptjs";
 
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
@@ -26,9 +27,19 @@ export async function register(req,res) {
         }
 
         const user = await User.create({name,email,password,profilePic});
+        
+        const newAccessToken = accessToken(user._id);
+        const newRefreshToken = refreshToken(user._id);
+
+        res.cookie("refreshToken",newRefreshToken,{
+            httpOnly:true,
+            secure:process.env.NODE_ENV === "production",
+            sameSite:"strict"
+        })
         res.status(201).json({
             message:"user created successfully",
-            user
+            user,
+            newAccessToken
         })
     } catch (error) {
         console.error("error creating user: ",error);
@@ -169,4 +180,58 @@ export async function updateProfilePic(req, res) {
         console.error("error updating profile pic: ", error);
         res.status(500).json({ message: "internal server error" });
     }
+}
+
+export async function updateProfile(req, res) {
+  try {
+    const { name, email } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email.toLowerCase();
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
+export async function updatePassword(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await user.matchPassword(currentPassword);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    user.password = newPassword; // (make sure your model hashes it)
+    await user.save();
+
+    res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
