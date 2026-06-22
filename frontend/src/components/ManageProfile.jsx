@@ -113,8 +113,9 @@ const handleAvatarChange = async (e) => {
                     className="w-[88px] h-[88px] rounded-full border-4 border-white object-cover"
                   />
                 ):(
-
-                  {initials}
+                  <span className="text-white text-2xl font-medium">
+                    {initials}
+                  </span>
                 )
                 }
               </div>

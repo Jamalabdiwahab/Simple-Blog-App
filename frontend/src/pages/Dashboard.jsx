@@ -3,7 +3,9 @@ import { useAuthStore } from "../store/authStore";
 import { logoutUser } from "../api/authApi";
 import { useLogout } from "../hooks/useAuth";
 import { Link } from "react-router";
-import ManageProfile from "./ManageProfile";
+import ManageProfile from "../components/ManageProfile";
+import HomePage from "./HomePage";
+import { LogOut, User } from "lucide-react";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
@@ -97,15 +99,17 @@ const Dashboard = () => {
                        setShowProfile(true);
                         setIsOpen(false);
                     }}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 transition" 
+                    className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition" 
                 >
+                    <User size={16}/>
                     Manage Profile
                 </button>
 
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 transition"
+                  className="w-full flex items-center gap-2 px-4 py-3 text-red-600 hover:bg-red-50 transition"
                 >
+                  <LogOut size={16}/>
                   Logout
                 </button>
               </div>
@@ -116,7 +120,7 @@ const Dashboard = () => {
 
       {/* Page Content */}
       <div className="mt-8">
-        Dashboard Content
+        <HomePage/>
       </div>
        {showProfile && (
          <ManageProfile onClose={() => setShowProfile(false)} />

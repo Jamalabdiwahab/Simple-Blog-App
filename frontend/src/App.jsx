@@ -6,6 +6,7 @@ import { useRefreshToken } from "./hooks/useRefreshToken";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
+import BlogDetails from "./pages/BlogDetails";
 
 function App() {
   useRefreshToken();
@@ -28,6 +29,10 @@ function App() {
       <Route
         path="/dashboard"
         element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+      />
+      <Route
+        path="/blogs/:id"
+        element={<BlogDetails />}
       />
     </Routes>
   );

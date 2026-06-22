@@ -11,7 +11,9 @@ export async function getAllBlogs(req,res) {
 
     try {
         const loggedInUser = req.user.id;
-        const blogs = await Blog.find({user:loggedInUser}).sort({createdAt: -1 });
+        const blogs = await Blog.find({user:loggedInUser})
+            .populate("user", "name email profilePic")
+            .sort({createdAt: -1 });
 
         res.status(200).json(blogs);
     } catch (error) {
@@ -24,7 +26,7 @@ export async function getBlogById(req,res) {
 
     try {
         const { id } = req.params;
-        const blog = await Blog.findById(id);
+        const blog = await Blog.findById(id).populate("user", "name email profilePic");
 
         if(!blog){
             return res.status(404).json({message:"This blog not found."})
@@ -72,7 +74,7 @@ export async function updateBlog(req,res) {
         }
         res.status(200).json({
             message:'Blog updated successfully!',
-            updatedBlog
+            blog: updatedBlog
         });
     } catch (error) {
         console.error("error updating blog: ",error);
